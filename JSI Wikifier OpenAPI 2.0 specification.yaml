@@ -42,7 +42,7 @@ definitions:
       extraVocabularies:
         type: string
         default: ''
-        pattern: '^([a-zA-Z0-9]+)(,[a-zA-Z0-9]+)*$'
+        pattern: '^([a-zA-Z0-9]+(,[a-zA-Z0-9]+)*)?$'
       wikiDataClasses:
         type: string
       wikiDataClassIds:
