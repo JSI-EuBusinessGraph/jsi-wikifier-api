@@ -1,7 +1,7 @@
 {
   "generator-openapi-repo": {
     "importExistingSpec": true,
-    "importedSpec": "/home/crilix/git/jsi-wikifier-api/JSI Wikifier OpenAPI 2.0 specification.yaml",
+    "importedSpec": "JSI Wikifier OpenAPI 2.0 specification.yaml",
     "name": "JSI Wikifier",
     "repo": "JSI-EuBusinessGraph/jsi-wikifier-api",
     "splitSpec": false,
