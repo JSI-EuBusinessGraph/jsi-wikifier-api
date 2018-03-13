@@ -6,6 +6,6 @@
     "repo": "JSI-EuBusinessGraph/jsi-wikifier-api",
     "splitSpec": false,
     "samples": false,
-    "installSwaggerUI": false
+    "installSwaggerUI": true
   }
 }

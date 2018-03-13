@@ -17,6 +17,7 @@
 ## Links
 
 - Documentation(ReDoc): https://jsi-eubusinessgraph.github.io/jsi-wikifier-api/
+- SwaggerUI: https://jsi-eubusinessgraph.github.io/jsi-wikifier-api/swagger-ui/
 - Look full spec:
     + JSON https://jsi-eubusinessgraph.github.io/jsi-wikifier-api/swagger.json
     + YAML https://jsi-eubusinessgraph.github.io/jsi-wikifier-api/swagger.yaml
