@@ -1,0 +1,333 @@
+swagger: '2.0'
+info:
+  description: Wikifier API developed by JSI.
+  version: 1.0.1
+  title: JSI Wikifier
+  contact:
+    email: janez.brank@ijs.si
+host: www.wikifier.org
+basePath: /
+schemes:
+  - http
+paths:
+  /annotate-article:
+    post:
+      summary: Wikify and annotate a given text
+      description: Wikify and annotate a given text.
+      operationId: annotate-article
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Annotation parameters
+          required: true
+          schema:
+            $ref: '#/definitions/WikifierInput'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/WikifierOutput'
+definitions:
+  WikifierInput:
+    type: object
+    required:
+      - userKey
+      - text
+    properties:
+      userKey:
+        type: string
+        description: A 30-character string that uniquely identifies each user (register here to get one).
+        example: abcdefghijklmnoprstquvwxyzabcde
+      text:
+        type: string
+        description: The text of the document that you want to annotate.
+      lang:
+        type: string
+        description: 'The ISO-639 code of the language of the document. Both 2- and 3-letter codes are supported (e.g. en or eng for English, sl or slv for Slovenian, etc.). Reffer to the list of supported languages. You can also use lang=auto to autodetect the language (using CLD2). In this case, the resulting JSON object will also contain a value named languageAutodetectDetails with more information about the results of the autodetection. Note that some of the languages supported by the Wikifier cannot be autodetected by CLD2 (and vice versa).'
+        default: auto
+      secondaryAnnotLanguage:
+        type: string
+        description: 'For each annotation, the Wikifier can report, in addition to its name and Wikipedia link in the Wikipedia for the language of the input document, also the name and link of the corresponding page in the Wikipedia for a “secondary” language; the secondaryAnnotLanguage parameter specifies the code of this secondary language (default: en, i.e. English).'
+        default: en
+      extraVocabularies:
+        type: string
+        description: 'A comma-separated list of label strings, which reference and enable preloaded Wikifier vocabularies. Wikifier uses these extra vocabularies to annotate the text using full-string matching of their members, in addition to Wikification. The results are returned under the key extraVocabularies in the returning JSON object.'
+        default: ''
+        pattern: '^([a-zA-Z0-9]+(,[a-zA-Z0-9]+)*)?$'
+      wikiDataClasses:
+        type: string
+        description: 'Determines whether to include, for each annotation, a list of wikidata (concept ID, concept name) pairs for all classes to which this concept belongs (directly or indirectly).'
+        default: 'false'
+        pattern: ^true|false$
+      wikiDataClassIds:
+        type: string
+        description: 'Like wikiDataClasses, but generates a list of concept IDs only (which makes the resulting JSON output shorter).'
+        default: 'false'
+        pattern: ^true|false$
+      support:
+        type: string
+        description: 'Determines whether to include, for each annotation, a list of subranges in the input document that support this particular annotation.'
+        default: 'false'
+        pattern: ^true|false$
+      ranges:
+        type: string
+        description: 'Determines whether to include, for each subrange in the document that looks like a possible mention of a concept, a list of all candidate annotations for that subrange. This will significantly increase the size of the resulting JSON output, so it should only be used if there''s a strong need for this data.'
+        default: 'false'
+        pattern: ^true|false$
+      includeCosines:
+        type: string
+        description: 'Determines whether to include, for each annotation, the cosine similarity between the input document and the Wikipedia page corresponding to that annotation. Currently the cosine similarities are provided for informational purposes only and are not used in choosing the annotations. Thus, you should set this to false to conserve some CPU time if you don''t need the cosines for your application.'
+        default: 'false'
+        pattern: ^true|false$
+      maxMentionEntropy:
+        type: string
+        description: 'Set this to a real number x to cause all highly ambiguous mentions to be ignored (i.e. they will contribute no candidate annotations into the process). The heuristic used is to ignore mentions where H(link target | anchor text = this mention) > x. (Default value: −1, which disables this heuristic.)'
+        default: '-1'
+        pattern: '^-?[0-9]+(\.[0-9]+)?$'
+      maxTargetsPerMention:
+        type: string
+        description: 'Set this to an integer x to use only the most frequent x candidate annotations for each mention (default value: 20). Note that some mentions appear as the anchor text of links to many different pages in the Wikipedia, so disabling this heuristic (by setting x = −1) can increase the number of candidate annotations significantly and make the annotation process slower.'
+        default: '20'
+        pattern: '^-?[0-9]+$'
+      minLinkFrequency:
+        type: string
+        description: 'If a link with a particular combination of anchor text and target occurs in very few Wikipedia pages (less than the value of minLinkFrequency), this link is completely ignored and the target page is not considered as a candidate annotation for the phrase that matches the anchor text of this link. (Default value: 1, which effectively disables this heuristic.)'
+        default: '1'
+        pattern: '^[0-9]+$'
+      pageRankSqThreshold:
+        type: string
+        description: 'Set this to a real number x to calculate a threshold for pruning the annotations on the basis of their pagerank score. The Wikifier will compute the sum of squares of all the annotations (e.g. S), sort the annotations by decreasing order of pagerank, and calculate a threshold such that keeping the annotations whose pagerank exceeds this threshold would bring the sum of their pagerank squares to S · x. Thus, a lower x results in a higher threshold and less annotations. (Default value: −1, which disables this mechanism.) The resulting threshold is reported in the minPageRank field of the JSON result object.'
+        default: '-1'
+        pattern: '^-?[0-9]+(\.[0-9]+)?$'
+      applyPageRankSqThreshold:
+        type: string
+        description: Discard the annotations whose pagerank is < minPageRank instead of including them in the JSON result object.
+        default: 'false'
+        pattern: ^true|false$
+      partsOfSpeech:
+        type: string
+        description: 'Determines whether to include information about parts of speech (nouns, verbs, adjectives, adverbs) and their corresponding WordNet synsets. This feature is only supported for English documents; the Brill tagger is used for POS tagging.'
+        default: 'false'
+        pattern: ^true|false$
+      verbs:
+        type: string
+        description: 'Like partsOfSpeech, but only reports verbs.'
+        default: 'false'
+        pattern: ^true|false$
+      nTopDfValuesToIgnore:
+        type: string
+        description: 'If a phrase consists entirely of very frequent words, it will be ignored and will not generate any candidate annotations. A word is considered frequent for this purpose if is one of the nTopDfValuesToIgnore most frequent words (in terms of document frequency) in the Wikipedia of the corresponding language. (Default value: 0, which disables this heuristic. If you want to use this heuristic, we recommend a value of 200 as a good starting point.)'
+        default: '0'
+        pattern: '^[0-9]+$'
+  WikifierOutput:
+    type: object
+    properties:
+      annotations:
+        type: array
+        description: An array of Wikifier annotations.
+        items:
+          type: object
+          properties:
+            url:
+              type: string
+              description: The URL of the Wikipedia page corresponding to this annotation.
+            title:
+              type: string
+              description: The title of the Wikipedia page corresponding to this annotation.
+            lang:
+              type: string
+              description: The language code of the Wikipedia from which this annotation is taken (currently this is always the language of the input document);
+            secLang:
+              type: string
+              description: The language of the Wikipedia page in the requested secondary language (passed as the secondaryAnnotLanguage input parameter). This is more useful when lang != secLang.
+            secUrl:
+              type: string
+              description: Refers to the URL of the equivalent page of the Wikipedia in the language secLang.
+            secTitle:
+              type: string
+              description: Refers to the title of the equivalent page of the Wikipedia in the language secLang.
+            pageRank:
+              type: number
+              description: The PageRank of this concept against the text document.
+            cosine:
+              type: number
+              description: The cosine similarity of this concept against the text document.
+            wikiDataClasses:
+              type: array
+              description: 'A list of class objects to which this concept belongs according to WikiData (using the instanceOf property, and then all their ancestors that can be reached with the subclassOf property).'
+              items:
+                type: object
+                properties:
+                  itemId:
+                    type: string
+                    pattern: '^Q[0-9]+$'
+                  enLabel:
+                    type: string
+            wikiDataClassIds:
+              type: array
+              description: 'A list of class IDs to which this concept belongs according to WikiData (using the instanceOf property, and then all their ancestors that can be reached with the subclassOf property).'
+              items:
+                type: string
+                pattern: '^Q[0-9]+$'
+            dbPediaIri:
+              type: string
+              description: One of the DBPedia IRIs corresponding to this annotation.
+            dbPediaTypes:
+              type: array
+              items:
+                type: string
+                description: 'Types to which the dbPediaIri value is connected via the http://www.w3.org/1999/02/22-rdf-syntax-ns#type property.'
+            support:
+              type: array
+              description: An array of all the subranges in the document that support this particular annotation.
+              items:
+                type: object
+                properties:
+                  wFrom:
+                    type: number
+                    description: 'The index of the first word in the subrange, corresponding to the words array.'
+                  wTo:
+                    type: number
+                    description: 'The index of the last word in the subrange, corresponding to the words array.'
+                  chFrom:
+                    type: number
+                    description: 'The index of the first character in the subrange, corresponding to the input document.'
+                  chTo:
+                    type: number
+                    description: 'The index of the last character in the subrange, corresponding to the input document.'
+                  pageRank:
+                    type: number
+                    description: The PageRank of this subrange (not necessarily useful to the user).
+                  pMentionGivenSurface:
+                    type: number
+                    description: 'The probability that, when a link appears in the Wikipedia with this particular subrange as its anchor text, it points to the Wikipedia page corresponding to the current annotation.'
+            supportLen:
+              type: number
+              description: The length of the returned support arrayed.
+      spaces:
+        type: array
+        description: 'The spaces and words arrays show how the input document has been split into words. It is always the case that spaces has exactly 1 more element than words and that concatenating spaces[0] + words[0] + spaces[1] + words[1] + ... + spaces[N-1] + words[N-1] + spaces[N] (where N is the length of words) is exactly equal to the input document (the one that was passed as the &text=... parameter).'
+        items:
+          type: string
+      words:
+        type: array
+        description: 'The spaces and words arrays show how the input document has been split into words. It is always the case that spaces has exactly 1 more element than words and that concatenating spaces[0] + words[0] + spaces[1] + words[1] + ... + spaces[N-1] + words[N-1] + spaces[N] (where N is the length of words) is exactly equal to the input document (the one that was passed as the &text=... parameter).'
+        items:
+          type: string
+      ranges:
+        type: array
+        description: An array of objects describing the candidates of a given subrange and associated properties.
+        items:
+          type: object
+          properties:
+            wFrom:
+              type: number
+              description: 'The index of the first word in the subrange, corresponding to the words array.'
+            wTo:
+              type: number
+              description: 'The index of the last word in the subrange, corresponding to the words array.'
+            pageRank:
+              type: number
+              description: The PageRank of this subrange (not necessarily useful to the user).
+            pMentionGivenSurface:
+              type: number
+              description: 'The probability that, when a link appears in the Wikipedia with this particular subrange as its anchor text, it points to the Wikipedia page corresponding to the current annotation.'
+            candidates:
+              type: array
+              description: A list of all the pages in the Wikipedia that are pointed to by links (from other pages in the Wikipedia) whose anchor text is the same as this phrase.
+              items:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    description: The title of the pointed Wikipedia page.
+                  url:
+                    type: string
+                    description: The URL of the pointed Wikipedia page.
+                  cosine:
+                    type: number
+                    description: The cosine similarity of the Wikipedia page with the input document.
+                  linkCount:
+                    type: number
+                    description: The number of links with this anchor text pointing to this particular page.
+                  pageRank:
+                    type: number
+                    description: 'The pagerank score of this candidate annotation. For phrases that generate too many candidates, some of these candidates might not participate in the pagerank computation; in that case pageRank is shown as -1 instead.'
+      verbs:
+        $ref: '#/definitions/partOfSpeechObject'
+      nouns:
+        $ref: '#/definitions/partOfSpeechObject'
+      adjectives:
+        $ref: '#/definitions/partOfSpeechObject'
+      adverbs:
+        $ref: '#/definitions/partOfSpeechObject'
+      extraVocabularies:
+        type: array
+        description: Information on annotations detected on the basis of extra vocabularies.
+        items:
+          type: object
+          properties:
+            annotations:
+              type: array
+              description: An array of annotations provided by the extraVocabularies functionality.
+              items:
+                type: object
+                properties:
+                  externalUrl:
+                    type: string
+                    description: A URL to the detected entity's external resource.
+                  internalUri:
+                    type: string
+                    description: An internal URI for the detected entity.
+                  name:
+                    type: string
+                    description: The entity name.
+                  support:
+                    type: array
+                    description: An annotation's match information.
+                    items:
+                      type: object
+                      properties:
+                        chFrom:
+                          type: number
+                          description: 'The index of the first character matched to one of the detected entity''s labels, corresponding to the input document.'
+                        chTo:
+                          type: number
+                          description: 'The index of the last character matched to one of the detected entity''s labels, corresponding to the input document.'
+                        wFrom:
+                          type: number
+                          description: 'The index of the first word matched to one of the detected entity''s labels, corresponding to the words array.'
+                        wTo:
+                          type: number
+                          description: 'The index of the last word matched to one of the detected entity''s labels, corresponding to the words array.'
+            name:
+              type: string
+              description: 'A vocabulary label, as provided in the request parameter extraVocabularies'
+  partOfSpeechObject:
+    type: array
+    description: 'If the partsOfSpeech=true parameter is used to request part-of-speech information, the resulting JSON object will additionally contain this array.'
+    items:
+      type: object
+      properties:
+        iFrom:
+          type: number
+          description: 'The index of the first character of this word, corresponding to the input document. The indices refer to the input text as a sequence of Unicode codepoints (i.e. not as a sequence of bytes that is the result of UTF-8 encoding). You can use these indices to recover the surface form of this verb as it appears in the input text.'
+        iTo:
+          type: number
+          description: 'The index of the first character of this word, corresponding to the input document. The indices refer to the input text as a sequence of Unicode codepoints (i.e. not as a sequence of bytes that is the result of UTF-8 encoding). You can use these indices to recover the surface form of this verb as it appears in the input text.'
+        normForm:
+          type: string
+          description: The lemmatized form (e.g. have instead of has).
+        synsetIds:
+          type: array
+          description: A list of all the Wordnet synsets that contain this verb.
+          items:
+            type: string
+            description: A Wordnet synset ID.
+externalDocs:
+  description: Wikifier documentation
+  url: 'http://wikifier.org/info.html'

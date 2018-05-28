@@ -1,0 +1,11 @@
+{
+  "generator-openapi-repo": {
+    "importExistingSpec": true,
+    "importedSpec": "JSI Wikifier OpenAPI 2.0 specification.yaml",
+    "name": "JSI Wikifier",
+    "repo": "JSI-EuBusinessGraph/jsi-wikifier-api",
+    "splitSpec": false,
+    "samples": false,
+    "installSwaggerUI": true
+  }
+}
